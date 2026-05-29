@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Destinations | VietJourney</title>
+    
+    <!-- Google Fonts: Playfair Display & Plus Jakarta Sans -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="assets/css/style.css">
+    <style>
+        /* === HERO BANNER (XANH SẪM) === */
+        .hero-destinations {
+            /* Thêm ảnh nền kết hợp dải màu tối lồng vào nhau */
+            background: linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.7)), 
+            url('https://images.unsplash.com/photo-1528127269322-539801943592?q=80&w=1920') center/cover no-repeat;
+            padding: 100px 0 120px 0; /* Giữ nguyên padding để chứa thanh filter */
+            color: white;
+            text-align: center;
+            background-color: var(--dark-green); /* Màu nền dự phòng nếu ảnh bị lỗi */
+        }
+
+        /* === THANH BỘ LỌC (FILTER BAR) === */
+        .filter-wrapper {
+            margin-top: -35px; /* Kéo ngược lên đè vào phần xanh sẫm */
+            position: relative;
+            z-index: 10;
+        }
+        .filter-bar {
+            background: white;
+            border-radius: 50px;
+            padding: 10px 20px;
+            display: inline-flex;
+            align-items: center;
+            gap: 15px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .filter-btn {
+            background: transparent;
+            border: 1px solid #E5E7EB;
+            color: var(--text-gray);
+            border-radius: 50px;
+            padding: 8px 20px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s;
+            text-decoration: none;
+        }
+        .filter-btn:hover { border-color: var(--primary-green); color: var(--primary-green); }
+        .filter-btn.active {
+            background-color: var(--primary-green);
+            color: white;
+            border-color: var(--primary-green);
+        }
+        .filter-badge {
+            background-color: #E5E7EB;
+            color: var(--text-dark);
+            border-radius: 50px;
+            padding: 2px 8px;
+            font-size: 0.75rem;
+            font-weight: 700;
+        }
+        .filter-btn.active .filter-badge {
+            background-color: rgba(255,255,255,0.3);
+            color: white;
+        }
+
+        /* === THẺ CARD ĐỊA ĐIỂM NÂNG CAO === */
+        .destination-card {
+            border: none;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+            transition: transform 0.3s ease;
+            height: 100%;
+            background: white;
+        }
+        .destination-card:hover { transform: translateY(-5px); box-shadow: 0 15px 30px rgba(0,0,0,0.08); }
+        .card-img-wrapper { position: relative; height: 240px; }
+        .card-img-wrapper img { width: 100%; height: 100%; object-fit: cover; }
+        
+        /* Các Tag nổi trên ảnh */
+        .tag-top-left {
+            position: absolute; top: 15px; left: 15px;
+            background: white; color: var(--text-dark);
+            padding: 4px 12px; border-radius: 50px; font-size: 0.75rem; font-weight: 600;
+        }
+        .tag-top-right {
+            position: absolute; top: 15px; right: 15px;
+            background: rgba(0,0,0,0.5); color: white; backdrop-filter: blur(4px);
+            padding: 4px 12px; border-radius: 50px; font-size: 0.75rem; font-weight: 600;
+        }
+        .tag-bottom-left {
+            position: absolute; bottom: 15px; left: 15px;
+            background: white; color: var(--text-dark);
+            padding: 4px 12px; border-radius: 50px; font-size: 0.75rem; font-weight: 600;
+        }
+
+        .rating-price { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .price-text { color: var(--primary-green); font-weight: 700; font-size: 1.1rem; }
+
+        /* === CTA BANNER GIỮA TRANG === */
+        .cta-banner {
+            background-color: var(--dark-green);
+            border-radius: 24px;
+            padding: 60px 20px;
+            color: white;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- NAVBAR -->
+    <nav class="navbar navbar-expand-lg sticky-top">
+        <div class="container">
+            <a class="navbar-brand" href="index.html">
+                <i class="bi bi-geo-alt-fill text-success"></i> VietJourney
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse justify-content-center" id="navbarNav">
+                <ul class="navbar-nav">
+                    <li class="nav-item"><a class="nav-link" href="index.html">Home</a></li>
+                    <!-- Đánh dấu Active ở trang Destinations -->
+                    <li class="nav-item"><a class="nav-link active" href="destinations.html">Destinations</a></li>
+                    <li class="nav-item"><a class="nav-link" href="culture.html">Culture</a></li>
+                    <li class="nav-item"><a class="nav-link" href="contact.html">Contact</a></li>
+                </ul>
+            </div>
+            <div class="d-none d-lg-block">
+                <button class="btn-custom"onclick="window.location.href='contact.html'">Plan a Trip <i class="bi bi-arrow-right"></i></button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- HERO SECTION -->
+    <section class="hero-destinations">
+        <div class="container">
+            <p class="text-uppercase tracking-wide mb-3" style="letter-spacing: 2px; font-size: 0.85rem; color: #a7f3d0;">Explore Vietnam</p>
+            <h1 class="display-4 fw-bold mb-3">All Destinations</h1>
+            <p class="lead mx-auto" style="max-width: 600px; font-size: 1.1rem; opacity: 0.9;">
+                From mountain highlands to tropical islands — find your perfect Vietnamese escape.
+            </p>
+        </div>
+    </section>
+
+    <!-- FILTER BAR (ĐÈ LÊN VIỀN) -->
+    <div class="container filter-wrapper text-center">
+        <div class="filter-bar">
+            <a href="#" class="filter-btn active">All <span class="filter-badge">12</span></a>
+            <a href="#" class="filter-btn">North <span class="filter-badge">4</span></a>
+            <a href="#" class="filter-btn">Central <span class="filter-badge">6</span></a>
+            <a href="#" class="filter-btn">South <span class="filter-badge">2</span></a>
+            <span class="text-muted ms-3" style="font-size: 0.9rem;">12 results</span>
+        </div>
+    </div>
+
+    <!-- GRID ĐỊA ĐIỂM -->
+    <section class="py-5 mt-4">
+        <div class="container">
+            <div class="row g-4">
+                
+                <!-- CARD 1: SAPA -->
+                <div class="col-md-6 col-lg-4">
+                    <div class="card destination-card">
+                        <div class="card-img-wrapper">
+                            <!-- Lưu ý: Thay link bằng assets/images/sapa.jpg -->
+                            <img src="assets/images/sapa.jpg" alt="Sapa" onerror="this.src='https://images.unsplash.com/photo-1541849419102-793dbed7f742?w=600&q=80'">
+                            <div class="tag-top-left">Mountain</div>
+                            <div class="tag-top-right">3–5 days</div>
+                            <div class="tag-bottom-left"><i class="bi bi-geo-alt"></i> North</div>
+                        </div>
+                        <div class="card-body p-4 d-flex flex-column">
+                            <h4 class="fw-bold mb-2">Sapa</h4>
+                            <p class="text-muted mb-4" style="font-size: 0.95rem;">Trek through misty peaks and vibrant rice terraces in the highland home of Vietnam's ethnic minorities.</p>
+                            
+                            <div class="rating-price mt-auto">
+                                <div class="text-warning fw-bold">
+                                    <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i>
+                                    <span class="text-dark ms-1">4.9</span>
+                                </div>
+                                <div class="price-text">From $89</div>
+                            </div>
+                            <a href="detail.html?id=sapa" class="btn btn-outline-custom w-100">View Details <i class="bi bi-arrow-right ms-1"></i></a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- CARD 2: HANOI -->
+                <div class="col-md-6 col-lg-4">
+                    <div class="card destination-card">
+                        <div class="card-img-wrapper">
+                            <img src="assets/images/hanoi.jpg" alt="Hanoi" onerror="this.src='https://images.unsplash.com/photo-1559592413-7cec4d0cae2b?w=600&q=80'">
+                            <div class="tag-top-left">City</div>
+                            <div class="tag-top-right">2–4 days</div>
+                            <div class="tag-bottom-left"><i class="bi bi-geo-alt"></i> North</div>
+                        </div>
+                        <div class="card-body p-4 d-flex flex-column">
+                            <h4 class="fw-bold mb-2">Hanoi</h4>
+                            <p class="text-muted mb-4" style="font-size: 0.95rem;">Explore the thousand-year-old capital where French colonial charm meets ancient Vietnamese culture.</p>
+                            
+                            <div class="rating-price mt-auto">
+                                <div class="text-warning fw-bold">
+                                    <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-half"></i>
+                                    <span class="text-dark ms-1">4.7</span>
+                                </div>
+                                <div class="price-text">From $65</div>
+                            </div>
+                            <a href="detail.html?id=hanoi" class="btn btn-outline-custom w-100">View Details <i class="bi bi-arrow-right ms-1"></i></a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- CARD 3: HA LONG BAY -->
+                <div class="col-md-6 col-lg-4">
+                    <div class="card destination-card">
+                        <div class="card-img-wrapper">
+                            <img src="assets/images/halong.jpg" alt="Ha Long Bay" onerror="this.src='https://images.unsplash.com/photo-1528127269322-539801943592?w=600&q=80'">
+                            <div class="tag-top-left">Coastal</div>
+                            <div class="tag-top-right">2–3 days</div>
+                            <div class="tag-bottom-left"><i class="bi bi-geo-alt"></i> North</div>
+                        </div>
+                        <div class="card-body p-4 d-flex flex-column">
+                            <h4 class="fw-bold mb-2">Ha Long Bay</h4>
+                            <p class="text-muted mb-4" style="font-size: 0.95rem;">Sail through thousands of emerald limestone karsts on a UNESCO-protected wonder of the natural world.</p>
+                            
+                            <div class="rating-price mt-auto">
+                                <div class="text-warning fw-bold">
+                                    <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i>
+                                    <span class="text-dark ms-1">4.9</span>
+                                </div>
+                                <div class="price-text">From $120</div>
+                            </div>
+                            <a href="detail.html?id=halong" class="btn btn-outline-custom w-100">View Details <i class="bi bi-arrow-right ms-1"></i></a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- CARD 4: NINH BINH -->
+                <div class="col-md-6 col-lg-4">
+                    <div class="card destination-card">
+                        <div class="card-img-wrapper">
+                            <img src="assets/images/ninhbinh.jpg" alt="Ninh Binh" onerror="this.src='https://images.unsplash.com/photo-1583417657208-a0f7e4f0141f?w=600&q=80'">
+                            <div class="tag-top-left">Scenic</div>
+                            <div class="tag-top-right">1–2 days</div>
+                            <div class="tag-bottom-left"><i class="bi bi-geo-alt"></i> North</div>
+                        </div>
+                        <div class="card-body p-4 d-flex flex-column">
+                            <h4 class="fw-bold mb-2">Ninh Binh</h4>
+                            <p class="text-muted mb-4" style="font-size: 0.95rem;">Row through surreal karst landscapes and ancient temples in Vietnam's inland Ha Long Bay.</p>
+                            
+                            <div class="rating-price mt-auto">
+                                <div class="text-warning fw-bold">
+                                    <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i>
+                                    <span class="text-dark ms-1">4.8</span>
+                                </div>
+                                <div class="price-text">From $55</div>
+                            </div>
+                            <a href="detail.html?id=ninhbinh" class="btn btn-outline-custom w-100">View Details <i class="bi bi-arrow-right ms-1"></i></a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- CARD 5: HOI AN -->
+                <div class="col-md-6 col-lg-4">
+                    <div class="card destination-card">
+                        <div class="card-img-wrapper">
+                            <img src="assets/images/hoian.jpg" alt="Hoi An" onerror="this.src='https://images.unsplash.com/photo-1559592413-7cec4d0cae2b?w=600&q=80'">
+                            <div class="tag-top-left">Cultural</div>
+                            <div class="tag-top-right">2–3 days</div>
+                            <div class="tag-bottom-left"><i class="bi bi-geo-alt"></i> Central</div>
+                        </div>
+                        <div class="card-body p-4 d-flex flex-column">
+                            <h4 class="fw-bold mb-2">Hoi An</h4>
+                            <p class="text-muted mb-4" style="font-size: 0.95rem;">Wander lantern-lit streets in this perfectly preserved trading port that glows gold at every turn.</p>
+                            
+                            <div class="rating-price mt-auto">
+                                <div class="text-warning fw-bold">
+                                    <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i>
+                                    <span class="text-dark ms-1">4.9</span>
+                                </div>
+                                <div class="price-text">From $70</div>
+                            </div>
+                            <a href="detail.html?id=hoian" class="btn btn-outline-custom w-100">View Details <i class="bi bi-arrow-right ms-1"></i></a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- CARD 6: DA NANG -->
+                <div class="col-md-6 col-lg-4">
+                    <div class="card destination-card">
+                        <div class="card-img-wrapper">
+                            <img src="assets/images/danang.jpg" alt="Da Nang" onerror="this.src='https://images.unsplash.com/photo-1583417657208-a0f7e4f0141f?w=600&q=80'">
+                            <div class="tag-top-left">Beach</div>
+                            <div class="tag-top-right">3–4 days</div>
+                            <div class="tag-bottom-left"><i class="bi bi-geo-alt"></i> Central</div>
+                        </div>
+                        <div class="card-body p-4 d-flex flex-column">
+                            <h4 class="fw-bold mb-2">Da Nang</h4>
+                            <p class="text-muted mb-4" style="font-size: 0.95rem;">Relax on award-winning beaches by day and discover vibrant street food and art scenes by night.</p>
+                            
+                            <div class="rating-price mt-auto">
+                                <div class="text-warning fw-bold">
+                                    <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-half"></i>
+                                    <span class="text-dark ms-1">4.6</span>
+                                </div>
+                                <div class="price-text">From $75</div>
+                            </div>
+                            <a href="detail.html?id=danang" class="btn btn-outline-custom w-100">View Details <i class="bi bi-arrow-right ms-1"></i></a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- CARD 7: HUE -->
+                <div class="col-md-6 col-lg-4">
+                    <div class="card destination-card">
+                        <div class="card-img-wrapper">
+                            <img src="assets/images/hue.jpg" alt="Hue" onerror="this.src='https://images.unsplash.com/photo-1576485290814-1c72ea42abaf?w=600&q=80'">
+                            <div class="tag-top-left">Cultural</div>
+                            <div class="tag-top-right">2–3 days</div>
+                            <div class="tag-bottom-left"><i class="bi bi-geo-alt"></i> Central</div>
+                        </div>
+                        <div class="card-body p-4 d-flex flex-column">
+                            <h4 class="fw-bold mb-2">Hue</h4>
+                            <p class="text-muted mb-4" style="font-size: 0.95rem;">Step back in time in the Imperial City, wandering through ancient tombs, palaces, and pagodas.</p>
+                            
+                            <div class="rating-price mt-auto">
+                                <div class="text-warning fw-bold">
+                                    <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-half"></i>
+                                    <span class="text-dark ms-1">4.7</span>
+                                </div>
+                                <div class="price-text">From $60</div>
+                            </div>
+                            <a href="detail.html?id=hue" class="btn btn-outline-custom w-100">View Details <i class="bi bi-arrow-right ms-1"></i></a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- CARD 8: PHONG NHA -->
+                <div class="col-md-6 col-lg-4">
+                    <div class="card destination-card">
+                        <div class="card-img-wrapper">
+                            <img src="assets/images/phongnha.jpg" alt="Phong Nha" onerror="this.src='https://images.unsplash.com/photo-1596710103443-41ec92336829?w=600&q=80'">
+                            <div class="tag-top-left">Adventure</div>
+                            <div class="tag-top-right">2–4 days</div>
+                            <div class="tag-bottom-left"><i class="bi bi-geo-alt"></i> Central</div>
+                        </div>
+                        <div class="card-body p-4 d-flex flex-column">
+                            <h4 class="fw-bold mb-2">Phong Nha</h4>
+                            <p class="text-muted mb-4" style="font-size: 0.95rem;">Explore the world's most spectacular cave systems hidden deep within lush national park jungles.</p>
+                            
+                            <div class="rating-price mt-auto">
+                                <div class="text-warning fw-bold">
+                                    <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i>
+                                    <span class="text-dark ms-1">4.9</span>
+                                </div>
+                                <div class="price-text">From $85</div>
+                            </div>
+                            <a href="detail.html?id=phongnha" class="btn btn-outline-custom w-100">View Details <i class="bi bi-arrow-right ms-1"></i></a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- CARD 9: NHA TRANG -->
+                <div class="col-md-6 col-lg-4">
+                    <div class="card destination-card">
+                        <div class="card-img-wrapper">
+                            <img src="assets/images/nhatrang.jpg" alt="Nha Trang" onerror="this.src='https://images.unsplash.com/photo-1582555172866-f73bb12a2ab3?w=600&q=80'">
+                            <div class="tag-top-left">Coastal</div>
+                            <div class="tag-top-right">3–5 days</div>
+                            <div class="tag-bottom-left"><i class="bi bi-geo-alt"></i> Central</div>
+                        </div>
+                        <div class="card-body p-4 d-flex flex-column">
+                            <h4 class="fw-bold mb-2">Nha Trang</h4>
+                            <p class="text-muted mb-4" style="font-size: 0.95rem;">Enjoy pristine sandy beaches, vibrant nightlife, and excellent scuba diving in the crystal-clear bay.</p>
+                            
+                            <div class="rating-price mt-auto">
+                                <div class="text-warning fw-bold">
+                                    <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-half"></i>
+                                    <span class="text-dark ms-1">4.5</span>
+                                </div>
+                                <div class="price-text">From $75</div>
+                            </div>
+                            <a href="detail.html?id=nhatrang" class="btn btn-outline-custom w-100">View Details <i class="bi bi-arrow-right ms-1"></i></a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- CARD 10: DA LAT -->
+                <div class="col-md-6 col-lg-4">
+                    <div class="card destination-card">
+                        <div class="card-img-wrapper">
+                            <img src="assets/images/dalat.jpg" alt="Da Lat" onerror="this.src='https://images.unsplash.com/photo-1559592413-7cec4d0cae2b?w=600&q=80'">
+                            <div class="tag-top-left">Mountain</div>
+                            <div class="tag-top-right">2–3 days</div>
+                            <div class="tag-bottom-left"><i class="bi bi-geo-alt"></i> Central</div>
+                        </div>
+                        <div class="card-body p-4 d-flex flex-column">
+                            <h4 class="fw-bold mb-2">Da Lat</h4>
+                            <p class="text-muted mb-4" style="font-size: 0.95rem;">Escape to the 'City of Eternal Spring' with its French chalets, pine forests, and flower gardens.</p>
+                            
+                            <div class="rating-price mt-auto">
+                                <div class="text-warning fw-bold">
+                                    <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i>
+                                    <span class="text-dark ms-1">4.8</span>
+                                </div>
+                                <div class="price-text">From $65</div>
+                            </div>
+                            <a href="detail.html?id=dalat" class="btn btn-outline-custom w-100">View Details <i class="bi bi-arrow-right ms-1"></i></a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- CARD 11: HO CHI MINH CITY -->
+                <div class="col-md-6 col-lg-4">
+                    <div class="card destination-card">
+                        <div class="card-img-wrapper">
+                            <img src="assets/images/hcmc.jpg" alt="Ho Chi Minh City" onerror="this.src='https://images.unsplash.com/photo-1583417319070-4a69db38a482?w=600&q=80'">
+                            <div class="tag-top-left">City</div>
+                            <div class="tag-top-right">3–5 days</div>
+                            <div class="tag-bottom-left"><i class="bi bi-geo-alt"></i> South</div>
+                        </div>
+                        <div class="card-body p-4 d-flex flex-column">
+                            <h4 class="fw-bold mb-2">Ho Chi Minh City</h4>
+                            <p class="text-muted mb-4" style="font-size: 0.95rem;">Dive into the pulsing energy of Vietnam's largest metropolis, a mix of historic sights and modern skyscrapers.</p>
+                            
+                            <div class="rating-price mt-auto">
+                                <div class="text-warning fw-bold">
+                                    <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i>
+                                    <span class="text-dark ms-1">4.8</span>
+                                </div>
+                                <div class="price-text">From $70</div>
+                            </div>
+                            <a href="detail.html?id=hcmc" class="btn btn-outline-custom w-100">View Details <i class="bi bi-arrow-right ms-1"></i></a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- CARD 12: PHU QUOC -->
+                <div class="col-md-6 col-lg-4">
+                    <div class="card destination-card">
+                        <div class="card-img-wrapper">
+                            <img src="assets/images/phuquoc.jpg" alt="Phu Quoc" onerror="this.src='https://images.unsplash.com/photo-1536640751916-d39f6004b391?w=600&q=80'">
+                            <div class="tag-top-left">Island</div>
+                            <div class="tag-top-right">4–6 days</div>
+                            <div class="tag-bottom-left"><i class="bi bi-geo-alt"></i> South</div>
+                        </div>
+                        <div class="card-body p-4 d-flex flex-column">
+                            <h4 class="fw-bold mb-2">Phu Quoc</h4>
+                            <p class="text-muted mb-4" style="font-size: 0.95rem;">Unwind on crystal-clear shores of Vietnam's pearl island, surrounded by coral reefs and jungle trails.</p>
+                            
+                            <div class="rating-price mt-auto">
+                                <div class="text-warning fw-bold">
+                                    <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i>
+                                    <span class="text-dark ms-1">4.9</span>
+                                </div>
+                                <div class="price-text">From $95</div>
+                            </div>
+                            <a href="detail.html?id=phuquoc" class="btn btn-outline-custom w-100">View Details <i class="bi bi-arrow-right ms-1"></i></a>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- BANNER KÊU GỌI HÀNH ĐỘNG (CTA) -->
+    <section class="py-5 mb-4">
+        <div class="container">
+            <div class="cta-banner">
+                <h2 class="fw-bold display-6 mb-3">Can't decide? Let us help.</h2>
+                <p class="lead mb-4 mx-auto" style="max-width: 700px; opacity: 0.9;">
+                    Our local experts will craft a custom itinerary based on your interests, budget, and travel style.
+                </p>
+                <button class="btn btn-light btn-lg px-5 rounded-pill fw-bold text-success">
+                    Get a Free Itinerary <i class="bi bi-arrow-right ms-1"></i>
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer class="footer">
+        <div class="container d-flex flex-column flex-md-row justify-content-between align-items-center">
+            <div class="mb-3 mb-md-0">
+                <i class="bi bi-geo-alt-fill text-success"></i> <span class="fw-bold">VietJourney</span>
+            </div>
+            <div class="text-muted small mb-3 mb-md-0">
+                &copy; 2026 VietJourney. All rights reserved.
+            </div>
+            <div>
+                <a href="#" class="btn-action" data-action="coming-soon">Privacy</a>
+                <a href="#" class="btn-action" data-action="coming-soon">Terms</a>
+                <a href="#" class="btn-action" data-action="coming-soon">Sitemap</a>
+                <a href="#" class="btn-action" data-action="coming-soon">FAQ</a>
+            </div>
+        </div>
+    </footer>
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="assets/js/script.js"></script>
+</body>
+</html>
